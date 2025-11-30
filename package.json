@@ -1,6 +1,6 @@
 {
   "name": "langchain-toon-output-parser",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "LangChain community add-on for structured output parsing using TOON format with Zod schema validation",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit",
     "example:basic": "tsx examples/basic-usage.ts",
     "example:nested": "tsx examples/nested-objects.ts",
+    "example:compare": "tsx examples/compare-token-usage.ts",
     "prepublishOnly": "npm run build"
   },
   "keywords": [

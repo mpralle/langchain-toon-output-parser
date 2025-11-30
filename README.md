@@ -136,6 +136,7 @@ Check out the [`examples/`](./examples) directory:
 
 - [`basic-usage.ts`](./examples/basic-usage.ts) - Simple object schema
 - [`nested-objects.ts`](./examples/nested-objects.ts) - Complex nested structures
+- [`compare-token-usage.ts`](./examples/compare-token-usage.ts) - **Compare JSON vs TOON token usage**
 
 Run them:
 
@@ -143,7 +144,33 @@ Run them:
 export MISTRAL_API_KEY="your-key-here"
 npm run example:basic
 npm run example:nested
+npm run example:compare  # See real token savings!
 ```
+
+### Token Savings Comparison
+
+The `compare-token-usage` example measures actual API token consumption:
+
+```bash
+npm run example:compare
+```
+
+**Example output:**
+
+```
+📊 Scenario: Array of Objects (5 users, 4 fields each)
+🔵 JSON:  Total tokens: 245
+🟢 TOON:  Total tokens: 156
+💰 TOON saved 89 tokens (36.3%)!
+```
+
+The example tests multiple scenarios:
+
+- Simple objects (3 fields)
+- Arrays of objects (5 users with 4 fields each)
+- Complex nested structures (multiple arrays)
+
+**Key takeaway**: TOON saves 30-60% tokens for array-heavy data!
 
 ## API Reference
 
