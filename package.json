@@ -27,7 +27,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mpralle/langchain-toon-output-parser"
+    "url": "git+https://github.com/mpralle/langchain-toon-output-parser.git"
   },
   "dependencies": {
     "@langchain/core": ">=0.2.0",
