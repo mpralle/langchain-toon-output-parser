@@ -7,15 +7,22 @@ import { z } from 'zod';
 export function zodSchemaToToonInstructions(schema: z.ZodType): string {
     const shape = getSchemaShape(schema);
     const example = generateToonExample(shape);
+    const enumConstraints = collectEnumConstraints(shape);
+
+    let constraintsText = '';
+    if (enumConstraints.length > 0) {
+        constraintsText = '\n\nField Constraints:\n' +
+            enumConstraints.map(c => `- ${c.field} must be one of: ${c.values.join(', ')}`).join('\n');
+    }
 
     return `Please respond in TOON format (Token-Oriented Object Notation).
 
 TOON Format Rules:
 - Use 2-space indentation for nested objects
-- Arrays use the format: arrayName[N]{field1,field2,...}:
-- The [N] must match the actual number of rows
+- Arrays use the format: arrayName[count]{field1,field2,...}: where count is the actual number of items (e.g., [3] for 3 items)
+- Replace 'count' with the actual number of rows in your data
 - Fields are comma-separated (or tab-separated if specified)
-- Strings with commas, quotes, or newlines must be quoted and escaped
+- Strings with commas, quotes, or newlines must be quoted and escaped${constraintsText}
 
 Expected structure:
 \`\`\`toon
@@ -23,6 +30,33 @@ ${example}
 \`\`\`
 
 Respond ONLY with the TOON-formatted data inside a code block.`;
+}
+
+/**
+ * Collect enum constraints from the schema for documentation
+ */
+function collectEnumConstraints(shape: SchemaShape, prefix: string = ''): Array<{ field: string; values: readonly string[] }> {
+    const constraints: Array<{ field: string; values: readonly string[] }> = [];
+
+    if (shape.type === 'object' && shape.fields) {
+        for (const [key, fieldShape] of Object.entries(shape.fields)) {
+            const fieldPath = prefix ? `${prefix}.${key}` : key;
+
+            if (fieldShape.type === 'enum' && fieldShape.values) {
+                constraints.push({ field: fieldPath, values: fieldShape.values });
+            } else if (fieldShape.type === 'object') {
+                constraints.push(...collectEnumConstraints(fieldShape, fieldPath));
+            } else if (fieldShape.type === 'array' && fieldShape.element) {
+                if (fieldShape.element.type === 'enum' && fieldShape.element.values) {
+                    constraints.push({ field: `${fieldPath}[]`, values: fieldShape.element.values });
+                } else if (fieldShape.element.type === 'object') {
+                    constraints.push(...collectEnumConstraints(fieldShape.element, `${fieldPath}[]`));
+                }
+            }
+        }
+    }
+
+    return constraints;
 }
 
 /**
@@ -110,7 +144,7 @@ function generateToonExample(shape: SchemaShape, indent: number = 0): string {
             // Array of objects - use TOON's efficient tabular format
             const fields = shape.element.type === 'object' && shape.element.fields ? shape.element.fields : {};
             const fieldNames = Object.keys(fields);
-            const header = `[N]{${fieldNames.join(',')}}:`;
+            const header = `[2]{${fieldNames.join(',')}}:`;
 
             // Generate a couple of example rows
             const row1Values = fieldNames.map(field =>
@@ -123,7 +157,7 @@ function generateToonExample(shape: SchemaShape, indent: number = 0): string {
             return `${header}\n${spaces2}  ${row1Values.join(',')}\n${spaces2}  ${row2Values.join(',')}`;
         } else {
             // Array of primitives
-            return `[N]: ${getExampleValue(shape.element)}, ${getExampleValue(shape.element, true)}`;
+            return `[2]: ${getExampleValue(shape.element)},${getExampleValue(shape.element, true)}`;
         }
     }
 
@@ -145,9 +179,12 @@ function getExampleValue(shape: SchemaShape, alternate: boolean = false): string
             return alternate ? '2025-01-02T00:00:00Z' : '2025-01-01T00:00:00Z';
         case 'enum':
             if (shape.values && shape.values.length > 0) {
-                return alternate && shape.values.length > 1
-                    ? `"${shape.values[1]}"`
-                    : `"${shape.values[0]}"`;
+                const value = alternate && shape.values.length > 1
+                    ? shape.values[1]
+                    : shape.values[0];
+                // Only add quotes if the value contains special characters or spaces
+                const needsQuotes = /[,:\s"\\]/.test(value);
+                return needsQuotes ? `"${value}"` : value;
             }
             return '"value"';
         default:

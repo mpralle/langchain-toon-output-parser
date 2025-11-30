@@ -28,8 +28,8 @@ describe('zodSchemaToToonInstructions', () => {
 
         const instructions = zodSchemaToToonInstructions(schema);
 
-        expect(instructions).toContain('users[N]{id,name}:');
-        expect(instructions).toContain('[N]');
+        expect(instructions).toContain('users[2]{id,name}:');
+        expect(instructions).toContain('[2]');
     });
 
     it('should handle nested objects', () => {

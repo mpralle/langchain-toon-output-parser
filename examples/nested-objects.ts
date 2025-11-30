@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { z } from 'zod';
 import { ChatMistralAI } from '@langchain/mistralai';
 import '../src/index.js';

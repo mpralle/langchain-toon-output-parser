@@ -108,7 +108,7 @@ age: 30
             const parser = new ToonOutputParser(schema);
             const instructions = parser.getFormatInstructions();
 
-            expect(instructions).toContain('[N]');
+            expect(instructions).toContain('[2]');
             expect(instructions).toContain('id,value');
         });
     });
